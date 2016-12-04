@@ -1,14 +1,16 @@
 <?php
-// TODO: learn this method of error handling - it's lame, actually.
+// TODO: learn this method of error handling - EDIT: it's lame, actually.
 // TODO: Require email from specific domain as an option, and confirm emails before allowing login
 // TODO: Add OAuth signins
+// TODO: Add password confirmation input
+// TODO: grey-out sign up button until input is validated and display issues in real time
 
 ob_start();
 session_start();
 if( isset($_SESSION['user'])!="" ){
-    header("Location: booksearch.php");
+    header("Location: ".$appHome);
 }
-include_once 'scripts/dbconnect.php';
+include_once 'scripts/appsettings.php';
 
 $error = false;
 
@@ -55,7 +57,7 @@ if ( isset($_POST['btn-signup']) ) {
         $count = mysqli_num_rows($result);
         if($count!=0){
             $error = true;
-            $emailError = "There's already an account with that email."; //@TODO echo forgot password link <a href="reset.php">forgot password</a> post email if it's set
+            $emailError = "There's already an account with that email.  (<a href=\"login.php\">log in</a> or <a href=\"reset.php\">reset password</a>)"; //@TODO pass email, if it's set, to the reset page.
         }
     }
     // password validation
@@ -67,10 +69,10 @@ if ( isset($_POST['btn-signup']) ) {
         $passError = "Password must have at least 6 characters.";
     }
 
-    // password encrypt using SHA256();
+    // encrypt password using SHA256();
     $password = hash('sha256', $pass);
 
-    // if there's no error, continue to signup
+    // If there's no error, add the new user to the database, store a hash, and send them a confirmation email.
     if( !$error ) {
 
         $query = "INSERT INTO users(firstName, lastName, userEmail, userPass) VALUES('$firstName','$lastName','$email','$password')";
@@ -78,8 +80,9 @@ if ( isset($_POST['btn-signup']) ) {
 
         if ($res) {
             $token = bin2hex(random_bytes(64));
+            $verifyType = 0; // 0 = new user, 1 = forgot password.  TODO remove all of that particular type when resetting.
             $timestamp = time();
-            $query = "INSERT INTO verification_table(token, email, tstamp) VALUES('$token', '$email', '$timestamp')";
+            $query = "INSERT INTO verification_table(token, email, type, tstamp) VALUES('$token', '$email', $type, '$timestamp')";
             $res = mysqli_query($conn, $query);
 
             $fromEmail = "no-reply";
@@ -89,7 +92,7 @@ if ( isset($_POST['btn-signup']) ) {
                 $subject = "Confirm Your ".$appName." Account";
                 $msg =  '<html>Hello '.$firstName.',<br><br>
                 Welcome to '.$appName.'!<br><br>To confirm your account, please click <a href="'.'http://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'"/>here,</a> or copy the following URL into your browser:<br><br>
-                http://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'<br><br>
+                https://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'<br><br>
                 If you\'re not '.$firstName.', please disregard this message.<br><br>Thanks,<br><br>- The '.$appName.' Team</html>';
 
                 $res = mail($email, $subject, $msg, $headers .= 'From: '.$appName." <".$fromEmail."@".$_SERVER['SERVER_NAME'].">\r\n".'Content-type: text/html; charset=iso-8859-1');
@@ -214,8 +217,4 @@ if ( isset($_POST['btn-signup']) ) {
 
     </div>
 
-    <?php include 'scripts/gtm.php' ?>
-
-    </body>
-    </html>
-<?php ob_end_flush(); ?>
+<?php include 'scripts/appfooter.php';

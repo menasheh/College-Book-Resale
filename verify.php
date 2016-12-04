@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-require_once 'scripts/dbconnect.php';
+require_once 'scripts/appsettings.php';
 
 /*
 if (isset($_SESSION['activation_message'])) {
@@ -28,7 +28,7 @@ if (isset($_SESSION['activation_message'])) {
                     $subject = "Reminder: Confirm Your ".$appName." Account";
                     $msg =  '<html>Hello '.$firstName.',<br><br>
                         Welcome to '.$appName.'!<br><br>To confirm your account, please click <a href="'.'http://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'"/>here,</a> or copy the following URL into your browser:<br><br>
-                        http://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'<br><br>
+                        https://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'<br><br>
                         If you\'re not '.$firstName.', please disregard this message.<br><br>Thanks,<br><br>- The '.$appName.' Team</html>';
 
                     $res = mail($email, $subject, $msg, $headers .= 'From: '.$appName." <".$fromEmail."@".$_SERVER['SERVER_NAME'].">\r\n".'Content-type: text/html; charset=iso-8859-1');
@@ -44,10 +44,11 @@ if (isset($_SESSION['activation_message'])) {
                     $userRow = mysqli_fetch_array($res);
 
                     $email = $userRow['email'];
+                    $type = $userRow['type'];
                     $tokenTime = $userRow['tstamp'];
 
                     if (time() - $tokenTime < 86400) { // 24 hours
-                        $query = "DELETE FROM verification_table WHERE email='$email'"; // Deletes ALL tokens for the current email.  todo should this also delete expired ones, to keep the db clean?
+                        $query = "DELETE FROM verification_table WHERE email='$email' and type='$type'"; // Deletes ALL tokens for the current email.  todo should this also delete expired ones, to keep the db clean?
                         $res = mysqli_query($conn, $query);
                         $msg = 'Account <strong>' . $email . '</strong> validated successfully.  You may now <a href="login.php"/>Log In.</a>';
 

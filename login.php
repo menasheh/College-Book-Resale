@@ -1,11 +1,11 @@
 <?php
 ob_start();
 session_start();
-require_once 'scripts/dbconnect.php';
+require_once 'scripts/appsettings.php';
 
 // If you're already logged in, redirect to the main app
 if ( isset($_SESSION['user'])!="" ) {
-    header("Location: booksearch.php");
+    header("Location: ".$appHome);
     exit;
 }
 
@@ -54,7 +54,7 @@ if( isset($_POST['btn-login']) ) {
             if ($count == 1 && $row['userPass'] == $password) {
 
                 $_SESSION['user'] = $row['userId'];
-                header("Location: booksearch.php");
+                header("Location: ".$appHome);
             } else {
                 $errMSG = "Incorrect Credentials, Try again...";
             }
@@ -73,19 +73,8 @@ if( isset($_POST['btn-login']) ) {
     }
 
 }
+include 'scripts/siteheader.php';
 ?>
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-        <title>BookSearch Login</title>
-        <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css"  />
-        <link rel="stylesheet" href="style.css" type="text/css" />
-    </head>
-    <body>
 
     <div class="container">
 
@@ -154,8 +143,4 @@ if( isset($_POST['btn-login']) ) {
 
     </div>
 
-    <?php include 'scripts/gtm.php' ?>
-
-    </body>
-    </html>
-<?php ob_end_flush(); ?>
+<?php include 'scripts/sitefooter.php';
