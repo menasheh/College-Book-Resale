@@ -4,6 +4,8 @@
 // TODO: Add OAuth signins
 // TODO: Add password confirmation input
 // TODO: grey-out sign up button until input is validated and display issues in real time
+// TODO: Add to verification database BEFORE user database, and user only if verification db succeds.  Possibly only get password after verification anyway?
+// TODO: Hide form after a successful registration;
 
 ob_start();
 session_start();
@@ -11,6 +13,9 @@ if( isset($_SESSION['user'])!="" ){
     header("Location: ".$appHome);
 }
 include_once 'scripts/appsettings.php';
+
+$pageTitle = "Register";
+include_once 'scripts/siteheader.php';
 
 $error = false;
 
@@ -31,7 +36,7 @@ if ( isset($_POST['btn-signup']) ) {
         $firstNameError = "Most first names are a bit longer than that.";
     } else if (!preg_match("/^[a-zA-Z]+$/",$firstName)) {
         $error = true;
-        $firstNameError = "Invalid first name.  Alphabet characters only.";
+        $firstNameError = "Invalid first name.  Alphabetic characters only.";
     }
 
     // basic last name validation
@@ -43,7 +48,7 @@ if ( isset($_POST['btn-signup']) ) {
         $lastNameError = "Most last names are a bit longer than that.";
     } else if (!preg_match("/^[a-zA-Z]+$/",$lastName)) {
         $error = true;
-        $lastNameError = "Invalid first name.  Alphabet characters only.";
+        $lastNameError = "Invalid last name.  Alphabetic characters only.";
     }
 
     //basic email validation
@@ -80,22 +85,25 @@ if ( isset($_POST['btn-signup']) ) {
 
         if ($res) {
             $token = bin2hex(random_bytes(64));
-            $verifyType = 0; // 0 = new user, 1 = forgot password.  TODO remove all of that particular type when resetting.
+            $vtype = 0; // 0 = new user
             $timestamp = time();
-            $query = "INSERT INTO verification_table(token, email, type, tstamp) VALUES('$token', '$email', $type, '$timestamp')";
+            $query = "INSERT INTO verification_table(token, email, vtype, tstamp) VALUES('$token', '$email', '$vtype', '$timestamp')";
             $res = mysqli_query($conn, $query);
-
-            $fromEmail = "no-reply";
 
             if ($res) {
 
+                $fromEmail = "no-reply";
+                $confirmURI = 'https://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?m='.$vtype.'&t='.$token;
+
                 $subject = "Confirm Your ".$appName." Account";
                 $msg =  '<html>Hello '.$firstName.',<br><br>
-                Welcome to '.$appName.'!<br><br>To confirm your account, please click <a href="'.'http://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'"/>here,</a> or copy the following URL into your browser:<br><br>
-                https://'.$_SERVER['HTTP_HOST'].'/'.basename(__DIR__).'/verify.php?t='.$token.'<br><br>
+                Welcome to '.$appName.'!<br><br>To confirm your account, please click <a href="'.$confirmURI.'"/>here,</a> or copy the following URL into your browser:<br><br>
+                '.$confirmURI.'<br><br>
                 If you\'re not '.$firstName.', please disregard this message.<br><br>Thanks,<br><br>- The '.$appName.' Team</html>';
 
                 $res = mail($email, $subject, $msg, $headers .= 'From: '.$appName." <".$fromEmail."@".$_SERVER['SERVER_NAME'].">\r\n".'Content-type: text/html; charset=iso-8859-1');
+
+                unset($_SESSION['vAction']); // Mostly helps testers - if your vAction was set, clicking a verification link could accidentally send a new verification link for a different account...
 
                 if ($res) {
                     $errTyp = "success";
@@ -111,7 +119,7 @@ if ( isset($_POST['btn-signup']) ) {
                 unset($pass);
             } else {
                 $errTyp = "danger";
-                $errMSG = "Something went wrong, in a bad way.  You should still be able to log in, but you're not verified, and that's bad...";
+                $errMSG = "Something went wrong, in a bad way.  You should still be able to log in, but you're not verified, and that's bad...<br>".mysqli_error($res);
             }
 
         } else {
@@ -124,15 +132,6 @@ if ( isset($_POST['btn-signup']) ) {
 
 }
 ?>
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title><?php echo $appName ?> - Register</title>
-        <link rel="stylesheet" href="assets/css/bootstrap.min.css" type="text/css"  />
-        <link rel="stylesheet" href="style.css" type="text/css" />
-    </head>
-    <body>
 
     <div class="container">
 
