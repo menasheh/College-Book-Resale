@@ -118,7 +118,7 @@ if ($_SESSION['vAction'] == "Verify" && !isset($_GET['t'])) { //Session variable
                 ' . $confirmURI . '<br><br>
                 If you\'re not ' . $firstName . ', please disregard this message.<br><br>Thanks,<br><br>- The ' . $appName . ' Team</html>';
 
-                $res = mail($email, $subject, $msg, $headers .= 'From: ' . $appName . " <" . $fromEmail . "@" . $_SERVER['SERVER_NAME'] . ">\r\n" . 'Content-type: text/html; charset=iso-8859-1');
+                $res = mail($email, $subject, $msg, $headers .= 'From: ' . $appName . " <" . $fromEmail . "@" . $_SERVER['SERVER_NAME'] . ">\r\nContent-type: text/html; charset=iso-8859-1");
 
                 if ($res) {
                     $alertType = "success";

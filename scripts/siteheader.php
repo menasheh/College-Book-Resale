@@ -66,7 +66,7 @@ $appHome = "index.php";
                     ],
                     [
                         ["Search Database", "booksearch.php"], // If user is logged in
-                        ["Log Out", "logout.php?logout"]
+                        ["Log Out", "logout.php"]
                     ]
                 ];
 

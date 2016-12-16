@@ -164,17 +164,11 @@ if ( isset($_POST['btn-signup']) ) {
                     <div class="form-group">
                         <div class="input-group">
                             <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                            <?php // BUG TODO fix - top input isn't rounded.  Top and bottom corners should be, not middle ?>
                             <input type="text" name="firstName" class="form-control" placeholder="Enter First Name" maxlength="50" value="<?php echo $firstName ?>" />
-                        </div>
-                        <span class="text-danger"><?php echo $firstNameError; ?></span>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="input-group">
-                            <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
                             <input type="text" name="lastName" class="form-control" placeholder="Enter Last Name" maxlength="50" value="<?php echo $lastName ?>" />
                         </div>
-                        <span class="text-danger"><?php echo $lastNameError; ?></span>
+                        <span class="text-danger"><?php echo $firstNameError; echo $lastNameError; ?></span>
                     </div>
 
                     <div class="form-group">
